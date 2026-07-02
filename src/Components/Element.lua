@@ -9,6 +9,7 @@ return function(Title, Desc, Parent, Hover)
 	local Element = {}
 
 	Element.TitleLabel = New("TextLabel", {
+		Name = "TitleLabel",
 		FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.Medium, Enum.FontStyle.Normal),
 		Text = Title,
 		TextColor3 = Color3.fromRGB(240, 240, 240),
@@ -23,6 +24,7 @@ return function(Title, Desc, Parent, Hover)
 	})
 
 	Element.DescLabel = New("TextLabel", {
+		Name = "DescLabel",
 		FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json"),
 		Text = Desc,
 		TextColor3 = Color3.fromRGB(200, 200, 200),
@@ -39,6 +41,7 @@ return function(Title, Desc, Parent, Hover)
 	})
 
 	Element.LabelHolder = New("Frame", {
+		Name = "LabelHolder",
 		AutomaticSize = Enum.AutomaticSize.Y,
 		BackgroundColor3 = Color3.fromRGB(255, 255, 255),
 		BackgroundTransparency = 1,

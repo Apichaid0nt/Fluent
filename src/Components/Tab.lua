@@ -220,8 +220,8 @@ function TabModule:New(Title, Icon, Parent)
 							if not el:IsA("TextButton") then
 								continue
 							end
-							local labelHolder = el:FindFirstChild("LabelHolder")
-							local titleLabel = labelHolder and labelHolder:FindFirstChildWhichIsA("TextLabel")
+							local labelHolder = el:FindFirstChild("LabelHolder") or el:FindFirstChildOfClass("Frame")
+							local titleLabel = labelHolder and (labelHolder:FindFirstChild("TitleLabel") or labelHolder:FindFirstChildWhichIsA("TextLabel"))
 							local title = titleLabel and titleLabel.Text:lower() or ""
 							local match = title:find(query, 1, true) ~= nil
 							el.Visible = match
@@ -237,8 +237,8 @@ function TabModule:New(Title, Icon, Parent)
 				if isEmpty then
 					child.Visible = true
 				else
-					local labelHolder = child:FindFirstChild("LabelHolder")
-					local titleLabel = labelHolder and labelHolder:FindFirstChildWhichIsA("TextLabel")
+					local labelHolder = child:FindFirstChild("LabelHolder") or child:FindFirstChildOfClass("Frame")
+					local titleLabel = labelHolder and (labelHolder:FindFirstChild("TitleLabel") or labelHolder:FindFirstChildWhichIsA("TextLabel"))
 					local title = titleLabel and titleLabel.Text:lower() or ""
 					child.Visible = title:find(query, 1, true) ~= nil
 				end
