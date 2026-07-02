@@ -107,8 +107,8 @@ function TabModule:New(Title, Icon, Parent)
 	})
 
 	Tab.ContainerFrame = New("ScrollingFrame", {
-		Size = UDim2.new(1, 0, 1, -38),
-		Position = UDim2.fromOffset(0, 38),
+		Size = UDim2.fromScale(1, 1),
+		Position = UDim2.fromOffset(0, 0),
 		BackgroundTransparency = 1,
 		Parent = Tab.RootFrame,
 		Visible = true,
@@ -133,62 +133,6 @@ function TabModule:New(Title, Icon, Parent)
 
 	Creator.AddSignal(ContainerLayout:GetPropertyChangedSignal("AbsoluteContentSize"), function()
 		Tab.ContainerFrame.CanvasSize = UDim2.new(0, 0, 0, ContainerLayout.AbsoluteContentSize.Y + 2)
-	end)
-
-	-- ── Search Bar ──────────────────────────────────────────────────────────
-	local SearchBarFrame = New("Frame", {
-		Size = UDim2.new(1, -11, 0, 32),
-		Position = UDim2.fromOffset(0, 0),
-		BackgroundColor3 = Color3.fromRGB(40, 40, 40),
-		BackgroundTransparency = 0.4,
-		BorderSizePixel = 0,
-		Parent = Tab.RootFrame,
-		ThemeTag = { BackgroundColor3 = "Element" },
-	}, {
-		New("UICorner", { CornerRadius = UDim.new(0, 6) }),
-		New("UIStroke", {
-			ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
-			Transparency = 0.7,
-			ThemeTag = { Color = "InElementBorder" },
-		}),
-		New("TextLabel", {
-			Text = "🔍",
-			TextSize = 13,
-			Size = UDim2.fromOffset(24, 32),
-			Position = UDim2.fromOffset(6, 0),
-			BackgroundTransparency = 1,
-			ThemeTag = { TextColor3 = "SubText" },
-		}),
-	})
-
-	local SearchBox = New("TextBox", {
-		Size = UDim2.new(1, -36, 1, -8),
-		Position = UDim2.fromOffset(30, 4),
-		BackgroundTransparency = 1,
-		BorderSizePixel = 0,
-		PlaceholderText = "Search...",
-		PlaceholderColor3 = Color3.fromRGB(90, 90, 90),
-		Text = "",
-		TextSize = 13,
-		TextXAlignment = Enum.TextXAlignment.Left,
-		ClearTextOnFocus = false,
-		FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json"),
-		Parent = SearchBarFrame,
-		ThemeTag = { TextColor3 = "Text" },
-	})
-
-	-- highlight border on focus
-	local SearchStroke = SearchBarFrame:FindFirstChildWhichIsA("UIStroke")
-	SearchBox.Focused:Connect(function()
-		if SearchStroke then
-			TweenService:Create(SearchStroke, TweenInfo.new(0.2), { Transparency = 0, Color = Color3.fromRGB(76, 194, 255) }):Play()
-		end
-	end)
-	SearchBox.FocusLost:Connect(function()
-		if SearchStroke then
-			TweenService:Create(SearchStroke, TweenInfo.new(0.2), { Transparency = 0.7 }):Play()
-			if SearchStroke then SearchStroke.Color = Color3.new(1,1,1) end
-		end
 	end)
 
 	-- filter function: hide/show elements and section roots
@@ -246,9 +190,15 @@ function TabModule:New(Title, Icon, Parent)
 		end
 	end
 
-	SearchBox:GetPropertyChangedSignal("Text"):Connect(function()
-		applySearch(SearchBox.Text)
-	end)
+	Tab._applySearch = applySearch
+
+	if Window.SearchBox then
+		Creator.AddSignal(Window.SearchBox:GetPropertyChangedSignal("Text"), function()
+			if TabModule.SelectedTab == TabIndex then
+				applySearch(Window.SearchBox.Text)
+			end
+		end)
+	end
 
 	Tab.Motor, Tab.SetTransparency = Creator.SpringMotor(1, Tab.Frame, "BackgroundTransparency")
 
@@ -303,6 +253,14 @@ function TabModule:SelectTab(Tab)
 
 	Window.TabDisplay.Text = TabModule.Tabs[Tab].Name
 	Window.SelectorPosMotor:setGoal(Spring(TabModule:GetCurrentTabPos(), { frequency = 6 }))
+
+	-- Re-apply current search query on tab switch
+	if Window.SearchBox then
+		local activeTab = TabModule.Tabs[Tab]
+		if activeTab and activeTab._applySearch then
+			activeTab._applySearch(Window.SearchBox.Text)
+		end
+	end
 
 	task.spawn(function()
 		Window.ContainerHolder.Parent = Window.ContainerAnim

@@ -80,6 +80,59 @@ return function(Config)
 		Selector,
 	})
 
+	local SearchBarFrame = New("Frame", {
+		Size = UDim2.new(1, -Window.TabWidth - 42, 0, 30),
+		Position = UDim2.fromOffset(Window.TabWidth + 26, 52),
+		BackgroundColor3 = Color3.fromRGB(40, 40, 40),
+		BackgroundTransparency = 0.4,
+		BorderSizePixel = 0,
+		ThemeTag = { BackgroundColor3 = "Element" },
+	}, {
+		New("UICorner", { CornerRadius = UDim.new(0, 6) }),
+		New("UIStroke", {
+			ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
+			Transparency = 0.7,
+			ThemeTag = { Color = "InElementBorder" },
+		}),
+		New("TextLabel", {
+			Text = "🔍",
+			TextSize = 12,
+			Size = UDim2.fromOffset(24, 30),
+			Position = UDim2.fromOffset(6, 0),
+			BackgroundTransparency = 1,
+			ThemeTag = { TextColor3 = "SubText" },
+		}),
+	})
+
+	Window.SearchBox = New("TextBox", {
+		Size = UDim2.new(1, -36, 1, -6),
+		Position = UDim2.fromOffset(30, 3),
+		BackgroundTransparency = 1,
+		BorderSizePixel = 0,
+		PlaceholderText = "Search...",
+		PlaceholderColor3 = Color3.fromRGB(90, 90, 90),
+		Text = "",
+		TextSize = 12,
+		TextXAlignment = Enum.TextXAlignment.Left,
+		ClearTextOnFocus = false,
+		FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json"),
+		Parent = SearchBarFrame,
+		ThemeTag = { TextColor3 = "Text" },
+	})
+
+	local SearchStroke = SearchBarFrame:FindFirstChildWhichIsA("UIStroke")
+	Window.SearchBox.Focused:Connect(function()
+		if SearchStroke then
+			TweenService:Create(SearchStroke, TweenInfo.new(0.2), { Transparency = 0, Color = Color3.fromRGB(76, 194, 255) }):Play()
+		end
+	end)
+	Window.SearchBox.FocusLost:Connect(function()
+		if SearchStroke then
+			TweenService:Create(SearchStroke, TweenInfo.new(0.2), { Transparency = 0.7 }):Play()
+			if SearchStroke then SearchStroke.Color = Color3.new(1,1,1) end
+		end
+	end)
+
 	Window.TabDisplay = New("TextLabel", {
 		RichText = true,
 		Text = "Tab",
@@ -89,7 +142,7 @@ return function(Config)
 		TextXAlignment = "Left",
 		TextYAlignment = "Center",
 		Size = UDim2.new(1, -16, 0, 28),
-		Position = UDim2.fromOffset(Window.TabWidth + 26, 56),
+		Position = UDim2.fromOffset(Window.TabWidth + 26, 92),
 		BackgroundTransparency = 1,
 		ThemeTag = {
 			TextColor3 = "Text",
@@ -107,8 +160,8 @@ return function(Config)
 	})
 
 	Window.ContainerCanvas = New("Frame", {
-		Size = UDim2.new(1, -Window.TabWidth - 32, 1, -102),
-		Position = UDim2.fromOffset(Window.TabWidth + 26, 90),
+		Size = UDim2.new(1, -Window.TabWidth - 32, 1, -138),
+		Position = UDim2.fromOffset(Window.TabWidth + 26, 126),
 		BackgroundTransparency = 1,
 	}, {
 		Window.ContainerAnim,
@@ -124,6 +177,7 @@ return function(Config)
 		Window.AcrylicPaint.Frame,
 		Window.TabDisplay,
 		Window.ContainerCanvas,
+		SearchBarFrame,
 		TabFrame,
 		ResizeStartFrame,
 	})
