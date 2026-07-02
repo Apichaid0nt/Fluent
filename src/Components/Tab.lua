@@ -94,16 +94,24 @@ function TabModule:New(Title, Icon, Parent)
 		}),
 	})
 
+	Tab.RootFrame = New("Frame", {
+		Size = UDim2.fromScale(1, 1),
+		BackgroundTransparency = 1,
+		Parent = Window.ContainerHolder,
+		Visible = false,
+	})
+
 	local ContainerLayout = New("UIListLayout", {
 		Padding = UDim.new(0, 5),
 		SortOrder = Enum.SortOrder.LayoutOrder,
 	})
 
 	Tab.ContainerFrame = New("ScrollingFrame", {
-		Size = UDim2.fromScale(1, 1),
+		Size = UDim2.new(1, 0, 1, -38),
+		Position = UDim2.fromOffset(0, 38),
 		BackgroundTransparency = 1,
-		Parent = Window.ContainerHolder,
-		Visible = false,
+		Parent = Tab.RootFrame,
+		Visible = true,
 		BottomImage = "rbxassetid://6889812791",
 		MidImage = "rbxassetid://6889812721",
 		TopImage = "rbxassetid://6276641225",
@@ -130,11 +138,11 @@ function TabModule:New(Title, Icon, Parent)
 	-- ── Search Bar ──────────────────────────────────────────────────────────
 	local SearchBarFrame = New("Frame", {
 		Size = UDim2.new(1, -11, 0, 32),
+		Position = UDim2.fromOffset(0, 0),
 		BackgroundColor3 = Color3.fromRGB(40, 40, 40),
 		BackgroundTransparency = 0.4,
 		BorderSizePixel = 0,
-		LayoutOrder = 0,
-		Parent = Tab.ContainerFrame,
+		Parent = Tab.RootFrame,
 		ThemeTag = { BackgroundColor3 = "Element" },
 	}, {
 		New("UICorner", { CornerRadius = UDim.new(0, 6) }),
@@ -189,42 +197,49 @@ function TabModule:New(Title, Icon, Parent)
 		local isEmpty = query == ""
 
 		for _, child in ipairs(Tab.ContainerFrame:GetChildren()) do
-			-- skip layout, padding, search bar itself
-			if child == SearchBarFrame
-				or child:IsA("UIListLayout")
-				or child:IsA("UIPadding")
-			then continue end
+			if child:IsA("UIListLayout") or child:IsA("UIPadding") then
+				continue
+			end
 
-			-- Section Root: has a TextLabel title + a Container Frame child
-			local sectionTitleLabel = child:FindFirstChildWhichIsA("TextLabel")
-			local sectionContainer   = child:FindFirstChildOfClass("Frame")
+			if child:IsA("Frame") then
+				-- Section Root
+				local sectionTitleLabel = child:FindFirstChildWhichIsA("TextLabel")
+				local sectionContainer = child:FindFirstChildOfClass("Frame")
 
-			if sectionTitleLabel and sectionContainer then
-				-- it's a section root — check if any element inside matches
-				if isEmpty then
-					child.Visible = true
-					for _, el in ipairs(sectionContainer:GetChildren()) do
-						if el:IsA("Frame") then el.Visible = true end
+				if sectionTitleLabel and sectionContainer then
+					if isEmpty then
+						child.Visible = true
+						for _, el in ipairs(sectionContainer:GetChildren()) do
+							if el:IsA("TextButton") then
+								el.Visible = true
+							end
+						end
+					else
+						local sectionHasMatch = false
+						for _, el in ipairs(sectionContainer:GetChildren()) do
+							if not el:IsA("TextButton") then
+								continue
+							end
+							local labelHolder = el:FindFirstChild("LabelHolder")
+							local titleLabel = labelHolder and labelHolder:FindFirstChildWhichIsA("TextLabel")
+							local title = titleLabel and titleLabel.Text:lower() or ""
+							local match = title:find(query, 1, true) ~= nil
+							el.Visible = match
+							if match then
+								sectionHasMatch = true
+							end
+						end
+						child.Visible = sectionHasMatch
 					end
-				else
-					local sectionHasMatch = false
-					for _, el in ipairs(sectionContainer:GetChildren()) do
-						if not el:IsA("Frame") then continue end
-						local lbl = el:FindFirstChildWhichIsA("TextLabel")
-						local title = lbl and lbl.Text:lower() or ""
-						local match = title:find(query, 1, true) ~= nil
-						el.Visible = match
-						if match then sectionHasMatch = true end
-					end
-					child.Visible = sectionHasMatch
 				end
-			else
-				-- direct element (not in a section)
+			elseif child:IsA("TextButton") then
+				-- Direct Element
 				if isEmpty then
 					child.Visible = true
 				else
-					local lbl = child:FindFirstChildWhichIsA("TextLabel")
-					local title = lbl and lbl.Text:lower() or ""
+					local labelHolder = child:FindFirstChild("LabelHolder")
+					local titleLabel = labelHolder and labelHolder:FindFirstChildWhichIsA("TextLabel")
+					local title = titleLabel and titleLabel.Text:lower() or ""
 					child.Visible = title:find(query, 1, true) ~= nil
 				end
 			end
@@ -253,7 +268,7 @@ function TabModule:New(Title, Icon, Parent)
 		TabModule:SelectTab(TabIndex)
 	end)
 
-	TabModule.Containers[TabIndex] = Tab.ContainerFrame
+	TabModule.Containers[TabIndex] = Tab.RootFrame
 	TabModule.Tabs[TabIndex] = Tab
 
 	Tab.Container = Tab.ContainerFrame
