@@ -36,53 +36,9 @@ return function(Config)
 	Window.AcrylicPaint = Acrylic.AcrylicPaint()
 	Window.TabWidth = Config.TabWidth
 
-	local Selector = New("Frame", {
-		Size = UDim2.fromOffset(4, 0),
-		BackgroundColor3 = Color3.fromRGB(76, 194, 255),
-		Position = UDim2.fromOffset(0, 17),
-		AnchorPoint = Vector2.new(0, 0.5),
-		ThemeTag = {
-			BackgroundColor3 = "Accent",
-		},
-	}, {
-		New("UICorner", {
-			CornerRadius = UDim.new(0, 2),
-		}),
-	})
-
-	local ResizeStartFrame = New("Frame", {
-		Size = UDim2.fromOffset(20, 20),
-		BackgroundTransparency = 1,
-		Position = UDim2.new(1, -20, 1, -20),
-	})
-
-	Window.TabHolder = New("ScrollingFrame", {
-		Size = UDim2.fromScale(1, 1),
-		BackgroundTransparency = 1,
-		ScrollBarImageTransparency = 1,
-		ScrollBarThickness = 0,
-		BorderSizePixel = 0,
-		CanvasSize = UDim2.fromScale(0, 0),
-		ScrollingDirection = Enum.ScrollingDirection.Y,
-	}, {
-		New("UIListLayout", {
-			Padding = UDim.new(0, 4),
-		}),
-	})
-
-	local TabFrame = New("Frame", {
-		Size = UDim2.new(0, Window.TabWidth, 1, -66),
-		Position = UDim2.new(0, 12, 0, 54),
-		BackgroundTransparency = 1,
-		ClipsDescendants = true,
-	}, {
-		Window.TabHolder,
-		Selector,
-	})
-
 	local SearchBarFrame = New("Frame", {
-		Size = UDim2.new(1, -Window.TabWidth - 42, 0, 30),
-		Position = UDim2.fromOffset(Window.TabWidth + 26, 52),
+		Size = UDim2.new(1, -4, 0, 30),
+		Position = UDim2.fromOffset(0, 0),
 		BackgroundColor3 = Color3.fromRGB(40, 40, 40),
 		BackgroundTransparency = 0.4,
 		BorderSizePixel = 0,
@@ -133,6 +89,52 @@ return function(Config)
 		end
 	end)
 
+	local Selector = New("Frame", {
+		Size = UDim2.fromOffset(4, 0),
+		BackgroundColor3 = Color3.fromRGB(76, 194, 255),
+		Position = UDim2.fromOffset(0, 17 + 36),
+		AnchorPoint = Vector2.new(0, 0.5),
+		ThemeTag = {
+			BackgroundColor3 = "Accent",
+		},
+	}, {
+		New("UICorner", {
+			CornerRadius = UDim.new(0, 2),
+		}),
+	})
+
+	local ResizeStartFrame = New("Frame", {
+		Size = UDim2.fromOffset(20, 20),
+		BackgroundTransparency = 1,
+		Position = UDim2.new(1, -20, 1, -20),
+	})
+
+	Window.TabHolder = New("ScrollingFrame", {
+		Size = UDim2.new(1, 0, 1, -36),
+		Position = UDim2.fromOffset(0, 36),
+		BackgroundTransparency = 1,
+		ScrollBarImageTransparency = 1,
+		ScrollBarThickness = 0,
+		BorderSizePixel = 0,
+		CanvasSize = UDim2.fromScale(0, 0),
+		ScrollingDirection = Enum.ScrollingDirection.Y,
+	}, {
+		New("UIListLayout", {
+			Padding = UDim.new(0, 4),
+		}),
+	})
+
+	local TabFrame = New("Frame", {
+		Size = UDim2.new(0, Window.TabWidth, 1, -66),
+		Position = UDim2.new(0, 12, 0, 54),
+		BackgroundTransparency = 1,
+		ClipsDescendants = true,
+	}, {
+		Window.TabHolder,
+		Selector,
+		SearchBarFrame,
+	})
+
 	Window.TabDisplay = New("TextLabel", {
 		RichText = true,
 		Text = "Tab",
@@ -142,7 +144,7 @@ return function(Config)
 		TextXAlignment = "Left",
 		TextYAlignment = "Center",
 		Size = UDim2.new(1, -16, 0, 28),
-		Position = UDim2.fromOffset(Window.TabWidth + 26, 92),
+		Position = UDim2.fromOffset(Window.TabWidth + 26, 56),
 		BackgroundTransparency = 1,
 		ThemeTag = {
 			TextColor3 = "Text",
@@ -160,8 +162,8 @@ return function(Config)
 	})
 
 	Window.ContainerCanvas = New("Frame", {
-		Size = UDim2.new(1, -Window.TabWidth - 32, 1, -138),
-		Position = UDim2.fromOffset(Window.TabWidth + 26, 126),
+		Size = UDim2.new(1, -Window.TabWidth - 32, 1, -102),
+		Position = UDim2.fromOffset(Window.TabWidth + 26, 90),
 		BackgroundTransparency = 1,
 	}, {
 		Window.ContainerAnim,
@@ -177,7 +179,6 @@ return function(Config)
 		Window.AcrylicPaint.Frame,
 		Window.TabDisplay,
 		Window.ContainerCanvas,
-		SearchBarFrame,
 		TabFrame,
 		ResizeStartFrame,
 	})
@@ -219,7 +220,7 @@ return function(Config)
 	local LastValue = 0
 	local LastTime = 0
 	Window.SelectorPosMotor:onStep(function(Value)
-		Selector.Position = UDim2.new(0, 0, 0, Value + 17)
+		Selector.Position = UDim2.new(0, 0, 0, Value + 17 + 36)
 		local Now = tick()
 		local DeltaTime = Now - LastTime
 
