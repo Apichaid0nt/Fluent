@@ -387,7 +387,77 @@ return function(Config)
 		if require(Root).UseAcrylic then
 			Window.AcrylicPaint.Model:Destroy()
 		end
+		if Window.ToggleButton then
+			Window.ToggleButton:Destroy()
+		end
 		Window.Root:Destroy()
+	end
+
+	-- Native Toggle Button integration
+	if Config.ToggleButton then
+		local ToggleButton = New("TextButton", {
+			Name = "FluentToggleButton",
+			BackgroundColor3 = Color3.fromRGB(30, 30, 30),
+			BorderSizePixel = 0,
+			Position = UDim2.new(0, 10, 0, 10),
+			Size = UDim2.fromOffset(50, 50),
+			Font = Enum.Font.GothamBold,
+			Text = "UI",
+			TextColor3 = Color3.fromRGB(255, 255, 255),
+			TextSize = 20,
+			AutoButtonColor = true,
+			Parent = Config.Parent,
+			ThemeTag = {
+				BackgroundColor3 = "TitleBarLine",
+			},
+		}, {
+			New("UICorner", { CornerRadius = UDim.new(0, 8) }),
+			New("UIStroke", {
+				ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
+				Thickness = 2,
+				ThemeTag = { Color = "Accent" },
+			}),
+		})
+
+		-- Dragging logic
+		local dragging, dragInput, dragStart, startPos
+		Creator.AddSignal(ToggleButton.InputBegan, function(inp)
+			if inp.UserInputType == Enum.UserInputType.MouseButton1
+			or inp.UserInputType == Enum.UserInputType.Touch then
+				dragging  = true
+				dragStart = inp.Position
+				startPos  = ToggleButton.Position
+				inp.Changed:Connect(function()
+					if inp.UserInputState == Enum.UserInputState.End then
+						dragging = false
+					end
+				end)
+			end
+		end)
+
+		Creator.AddSignal(ToggleButton.InputChanged, function(inp)
+			if inp.UserInputType == Enum.UserInputType.MouseMovement
+			or inp.UserInputType == Enum.UserInputType.Touch then
+				dragInput = inp
+			end
+		end)
+
+		Creator.AddSignal(UserInputService.InputChanged, function(inp)
+			if inp == dragInput and dragging then
+				local d = inp.Position - dragStart
+				ToggleButton.Position = UDim2.new(
+					startPos.X.Scale, startPos.X.Offset + d.X,
+					startPos.Y.Scale, startPos.Y.Offset + d.Y
+				)
+			end
+		end)
+
+		-- Minimize toggle connection
+		Creator.AddSignal(ToggleButton.MouseButton1Click, function()
+			Window:Minimize()
+		end)
+
+		Window.ToggleButton = ToggleButton
 	end
 
 	local DialogModule = require(Components.Dialog):Init(Window)

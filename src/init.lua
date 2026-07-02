@@ -128,6 +128,7 @@ function Library:CreateWindow(Config)
 		Title = Config.Title,
 		SubTitle = Config.SubTitle,
 		TabWidth = Config.TabWidth,
+		ToggleButton = Config.ToggleButton,
 	})
 
 	Library.Window = Window
@@ -148,6 +149,9 @@ function Library:Destroy()
 		Library.Unloaded = true
 		if Library.UseAcrylic then
 			Library.Window.AcrylicPaint.Model:Destroy()
+		end
+		if Library.Window.ToggleButton then
+			Library.Window.ToggleButton:Destroy()
 		end
 		Creator.Disconnect()
 		Library.GUI:Destroy()
