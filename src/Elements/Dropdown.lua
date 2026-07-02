@@ -85,13 +85,32 @@ function Element:New(Idx, Config)
 		DropdownDisplay,
 	})
 
+	local DropdownSearchBox = New("TextBox", {
+		Size = UDim2.new(1, -10, 0, 26),
+		Position = UDim2.fromOffset(5, 0),
+		BackgroundColor3 = Color3.fromRGB(50, 50, 50),
+		BackgroundTransparency = 0.5,
+		BorderSizePixel = 0,
+		PlaceholderText = "Search...",
+		PlaceholderColor3 = Color3.fromRGB(100, 100, 100),
+		Text = "",
+		TextSize = 12,
+		TextXAlignment = Enum.TextXAlignment.Left,
+		ClearTextOnFocus = false,
+		FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json"),
+		ThemeTag = { TextColor3 = "Text" },
+	}, {
+		New("UICorner", { CornerRadius = UDim.new(0, 4) }),
+		New("UIPadding", { PaddingLeft = UDim.new(0, 6) }),
+	})
+
 	local DropdownListLayout = New("UIListLayout", {
 		Padding = UDim.new(0, 3),
 	})
 
 	local DropdownScrollFrame = New("ScrollingFrame", {
-		Size = UDim2.new(1, -5, 1, -10),
-		Position = UDim2.fromOffset(5, 5),
+		Size = UDim2.new(1, -5, 1, -40),
+		Position = UDim2.fromOffset(5, 33),
 		BackgroundTransparency = 1,
 		BottomImage = "rbxassetid://6889812791",
 		MidImage = "rbxassetid://6889812721",
@@ -111,6 +130,7 @@ function Element:New(Idx, Config)
 			BackgroundColor3 = "DropdownHolder",
 		},
 	}, {
+		DropdownSearchBox,
 		DropdownScrollFrame,
 		New("UICorner", {
 			CornerRadius = UDim.new(0, 7),
@@ -202,6 +222,8 @@ function Element:New(Idx, Config)
 		Dropdown.Opened = true
 		ScrollFrame.ScrollingEnabled = false
 		DropdownHolderCanvas.Visible = true
+		-- clear search when opening
+		DropdownSearchBox.Text = ""
 		TweenService:Create(
 			DropdownHolderFrame,
 			TweenInfo.new(0.2, Enum.EasingStyle.Quart, Enum.EasingDirection.Out),
@@ -395,7 +417,7 @@ function Element:New(Idx, Config)
 
 		ListSizeX = 0
 		for Button, Table in next, Buttons do
-			if Button.ButtonLabel then
+			if Button:FindFirstChild("ButtonLabel") then
 				if Button.ButtonLabel.TextBounds.X > ListSizeX then
 					ListSizeX = Button.ButtonLabel.TextBounds.X
 				end
@@ -405,6 +427,17 @@ function Element:New(Idx, Config)
 
 		RecalculateCanvasSize()
 		RecalculateListSize()
+
+		-- wire up search filtering after building
+		DropdownSearchBox:GetPropertyChangedSignal("Text"):Connect(function()
+			local q = DropdownSearchBox.Text:lower()
+			for btn in next, Buttons do
+				local lbl = btn:FindFirstChild("ButtonLabel")
+				local text = lbl and lbl.Text:lower() or ""
+				btn.Visible = (q == "") or (text:find(q, 1, true) ~= nil)
+			end
+			RecalculateCanvasSize()
+		end)
 	end
 
 	function Dropdown:SetValues(NewValues)

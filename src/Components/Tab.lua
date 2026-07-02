@@ -1,3 +1,4 @@
+local TweenService = game:GetService("TweenService")
 local Root = script.Parent.Parent
 local Flipper = require(Root.Packages.Flipper)
 local Creator = require(Root.Creator)
@@ -124,6 +125,114 @@ function TabModule:New(Title, Icon, Parent)
 
 	Creator.AddSignal(ContainerLayout:GetPropertyChangedSignal("AbsoluteContentSize"), function()
 		Tab.ContainerFrame.CanvasSize = UDim2.new(0, 0, 0, ContainerLayout.AbsoluteContentSize.Y + 2)
+	end)
+
+	-- ── Search Bar ──────────────────────────────────────────────────────────
+	local SearchBarFrame = New("Frame", {
+		Size = UDim2.new(1, -11, 0, 32),
+		BackgroundColor3 = Color3.fromRGB(40, 40, 40),
+		BackgroundTransparency = 0.4,
+		BorderSizePixel = 0,
+		LayoutOrder = 0,
+		Parent = Tab.ContainerFrame,
+		ThemeTag = { BackgroundColor3 = "ElementBackground" },
+	}, {
+		New("UICorner", { CornerRadius = UDim.new(0, 6) }),
+		New("UIStroke", {
+			ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
+			Transparency = 0.7,
+			ThemeTag = { Color = "InElementBorder" },
+		}),
+		New("TextLabel", {
+			Text = "🔍",
+			TextSize = 13,
+			Size = UDim2.fromOffset(24, 32),
+			Position = UDim2.fromOffset(6, 0),
+			BackgroundTransparency = 1,
+			ThemeTag = { TextColor3 = "SubText" },
+		}),
+	})
+
+	local SearchBox = New("TextBox", {
+		Size = UDim2.new(1, -36, 1, -8),
+		Position = UDim2.fromOffset(30, 4),
+		BackgroundTransparency = 1,
+		BorderSizePixel = 0,
+		PlaceholderText = "Search...",
+		PlaceholderColor3 = Color3.fromRGB(90, 90, 90),
+		Text = "",
+		TextSize = 13,
+		TextXAlignment = Enum.TextXAlignment.Left,
+		ClearTextOnFocus = false,
+		FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json"),
+		Parent = SearchBarFrame,
+		ThemeTag = { TextColor3 = "Text" },
+	})
+
+	-- highlight border on focus
+	local SearchStroke = SearchBarFrame:FindFirstChildWhichIsA("UIStroke")
+	SearchBox.Focused:Connect(function()
+		if SearchStroke then
+			TweenService:Create(SearchStroke, TweenInfo.new(0.2), { Transparency = 0, Color = Color3.fromRGB(76, 194, 255) }):Play()
+		end
+	end)
+	SearchBox.FocusLost:Connect(function()
+		if SearchStroke then
+			TweenService:Create(SearchStroke, TweenInfo.new(0.2), { Transparency = 0.7 }):Play()
+			if SearchStroke then SearchStroke.Color = Color3.new(1,1,1) end
+		end
+	end)
+
+	-- filter function: hide/show elements and section roots
+	local function applySearch(query)
+		query = query:lower()
+		local isEmpty = query == ""
+
+		for _, child in ipairs(Tab.ContainerFrame:GetChildren()) do
+			-- skip layout, padding, search bar itself
+			if child == SearchBarFrame
+				or child:IsA("UIListLayout")
+				or child:IsA("UIPadding")
+			then continue end
+
+			-- Section Root: has a TextLabel title + a Container Frame child
+			local sectionTitleLabel = child:FindFirstChildWhichIsA("TextLabel")
+			local sectionContainer   = child:FindFirstChildOfClass("Frame")
+
+			if sectionTitleLabel and sectionContainer then
+				-- it's a section root — check if any element inside matches
+				if isEmpty then
+					child.Visible = true
+					for _, el in ipairs(sectionContainer:GetChildren()) do
+						if el:IsA("Frame") then el.Visible = true end
+					end
+				else
+					local sectionHasMatch = false
+					for _, el in ipairs(sectionContainer:GetChildren()) do
+						if not el:IsA("Frame") then continue end
+						local lbl = el:FindFirstChildWhichIsA("TextLabel")
+						local title = lbl and lbl.Text:lower() or ""
+						local match = title:find(query, 1, true) ~= nil
+						el.Visible = match
+						if match then sectionHasMatch = true end
+					end
+					child.Visible = sectionHasMatch
+				end
+			else
+				-- direct element (not in a section)
+				if isEmpty then
+					child.Visible = true
+				else
+					local lbl = child:FindFirstChildWhichIsA("TextLabel")
+					local title = lbl and lbl.Text:lower() or ""
+					child.Visible = title:find(query, 1, true) ~= nil
+				end
+			end
+		end
+	end
+
+	SearchBox:GetPropertyChangedSignal("Text"):Connect(function()
+		applySearch(SearchBox.Text)
 	end)
 
 	Tab.Motor, Tab.SetTransparency = Creator.SpringMotor(1, Tab.Frame, "BackgroundTransparency")
