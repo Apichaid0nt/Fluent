@@ -135,7 +135,7 @@ function TabModule:New(Title, Icon, Parent)
 		BorderSizePixel = 0,
 		LayoutOrder = 0,
 		Parent = Tab.ContainerFrame,
-		ThemeTag = { BackgroundColor3 = "ElementBackground" },
+		ThemeTag = { BackgroundColor3 = "Element" },
 	}, {
 		New("UICorner", { CornerRadius = UDim.new(0, 6) }),
 		New("UIStroke", {
